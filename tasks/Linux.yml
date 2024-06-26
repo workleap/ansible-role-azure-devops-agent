@@ -145,6 +145,15 @@
   when:
     - az_devops_agent_replace_existing
 
+- name: Allow configuration to write logs
+  ansible.builtin.file:
+    path: "{{ az_devops_agent_folder }}_diag"
+    owner: "{{ az_devops_agent_user }}"
+    group: "root"
+    mode: 'g+w'
+    state: directory
+  become: true
+
 - name: Configure agent as a build server
   command: "{{ (agent_cmd_args + build_agent_cmd_args) | join(' ') }}"
   args:
