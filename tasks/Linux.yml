@@ -19,12 +19,6 @@
     - "{{ az_devops_work_folder }}"
   become: true
 
-- name: Install dependencies
-  package:
-    name: "{{ az_devops_agent_dependencies }}"
-    state: present
-  become: true
-
 - name: Check if svc.sh exists
   stat:
     path: "{{ '/'.join((az_devops_agent_folder, 'svc.sh')) }}"
@@ -50,6 +44,10 @@
   become: true
   changed_when: false
   check_mode: no
+
+  # helpful for when agent installation had failed in the middle
+- include_tasks: _task_install_dependencies.yml
+  when: bin_agent_listener.stat.exists
 
 - name: Check agent version
   command: ./bin/Agent.Listener --version
@@ -144,6 +142,8 @@
     resource_agent_cmd_args: "{{ resource_agent_cmd_args }} + ['--replace']"
   when:
     - az_devops_agent_replace_existing
+
+- include_tasks: _task_install_dependencies.yml
 
 - name: Configure agent as a build server
   command: "{{ (agent_cmd_args + build_agent_cmd_args) | join(' ') }}"

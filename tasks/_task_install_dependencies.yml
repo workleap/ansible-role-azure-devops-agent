@@ -1,0 +1,4 @@
+- name: Install dependencies
+  command: "{{ az_devops_agent_folder }}/bin/installdependencies.sh"
+  become: true
+  register: dependency_installation_output
