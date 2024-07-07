@@ -10,13 +10,15 @@
 - name: Create directories
   file:
     state: directory
-    path: "{{ item }}"
+    path: "{{ directory }}"
     owner: "{{ az_devops_agent_user }}"
     group: "{{ az_devops_agent_group }}"
     mode: 0755
   loop:
     - "{{ az_devops_agent_folder }}"
     - "{{ az_devops_work_folder }}"
+  loop_control:
+    loop_var: directory
   become: true
 
 - name: Install dependencies
@@ -66,12 +68,12 @@
     agent_cmd_args:
       - "./config.sh"
       - "--unattended"
-      - "--acceptteeeula"
+      - "--acceptTeeEula"
       - "--url '{{ az_devops_server_url }}'"
       - "--work '{{ az_devops_work_folder }}'"
-      - "--auth PAT"
+      - "--auth pat"
       - "--token '{{ az_devops_accesstoken }}'"
-      - "--runasservice"
+      - "--runasservice" # * Windows Only
     build_agent_cmd_args:
       - "--pool '{{ az_devops_agent_pool_name }}'"
       - "--agent '{{ az_devops_agent_name }}'"
@@ -87,6 +89,12 @@
     service_is_installed: "{{ svc_status.stdout is defined and svc_status.stdout is not regex('not installed') }}"
     service_is_running: "{{ svc_status.stdout is defined and svc_status.stdout is regex('active \\(running\\)') }}"
     is_requested_version: "{{ bin_agent_listener.stat.exists and agent_listener_version.stdout is defined and agent_listener_version.stdout == az_devops_agent_version }}"
+
+- name: Set Agent config facts combined
+  set_fact:
+    build_server_cmd_args: "{{ agent_cmd_args + build_agent_cmd_args }}"
+    deployment_server_cmd_args: "{{ agent_cmd_args + deployment_agent_cmd_args }}"
+    resource_server_cmd_args: "{{ agent_cmd_args + resource_agent_cmd_args }}"
 
 - name: Determine if the agent should be reconfigured or replaced
   set_fact:
@@ -139,14 +147,14 @@
 
 - name: Add '--replace' configuration argument
   set_fact:
-    build_agent_cmd_args: "{{ build_agent_cmd_args }} + ['--replace']"
-    deployment_agent_cmd_args: "{{ build_agent_cmd_args }} + ['--replace']"
-    resource_agent_cmd_args: "{{ resource_agent_cmd_args }} + ['--replace']"
+    build_server_cmd_args: "{{ build_server_cmd_args + ['--replace'] }}"
+    deployment_server_cmd_args: "{{ deployment_server_cmd_args + ['--replace'] }}"
+    resource_server_cmd_args: "{{ resource_server_cmd_args + ['--replace'] }}"
   when:
     - az_devops_agent_replace_existing
 
 - name: Configure agent as a build server
-  command: "{{ (agent_cmd_args + build_agent_cmd_args) | join(' ') }}"
+  command: "{{ build_server_cmd_args | join(' ') }}"
   args:
     chdir: "{{ az_devops_agent_folder }}"
     creates: "{{ az_devops_agent_folder }}/.agent"
@@ -157,7 +165,7 @@
     - (not service_is_installed) or reconfigure_or_replace
 
 - name: Configure agent as a deployment server
-  command: "{{ (agent_cmd_args + deployment_agent_cmd_args) | join(' ') }}"
+  command: "{{ deployment_server_cmd_args | join(' ') }}"
   args:
     chdir: "{{ az_devops_agent_folder }}"
     creates: "{{ az_devops_agent_folder }}/.agent"
@@ -168,7 +176,7 @@
     - (not service_is_installed) or reconfigure_or_replace
 
 - name: Configure agent as an environment resource
-  command: "{{ (agent_cmd_args + resource_agent_cmd_args) | join(' ') }}"
+  command: "{{ resource_server_cmd_args | join(' ') }}"
   args:
     chdir: "{{ az_devops_agent_folder }}"
     creates: "{{ az_devops_agent_folder }}/.agent"
@@ -182,12 +190,14 @@
   community.general.ini_file:
     path: "{{ az_devops_agent_folder }}/.env"
     section: null
-    option: "{{ item.key }}"
-    value: "{{ item.value }}"
+    option: "{{ capability.key }}"
+    value: "{{ capability.value }}"
     no_extra_spaces: yes
     owner: "{{ az_devops_agent_user }}"
     group: "{{ az_devops_agent_group }}"
   loop: "{{ az_devops_agent_user_capabilities | default({}) | dict2items }}"
+  loop_control:
+    loop_var: capability
   become: true
 
 - name: Install agent service

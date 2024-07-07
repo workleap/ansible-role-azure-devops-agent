@@ -19,7 +19,7 @@ Available variables are listed below, along with default values (see `defaults/m
     az_devops_accountname: null
     az_devops_accesstoken: null
     az_devops_project_name: null
-    az_devops_agent_version: 2.188.3
+    az_devops_agent_version: 3.241.0
     az_devops_agent_user: "az_devops_agent"
     az_devops_agent_uid: null
     az_devops_agent_name: "{{ ansible_hostname }}"
@@ -56,6 +56,21 @@ Available variables are listed below, along with default values (see `defaults/m
 - **az_devops_agent_version**
 
   Version of the installed agent package. Should be periodically updated to the latest version (see [here](https://github.com/microsoft/azure-pipelines-agent/releases/latest)).
+
+- **az_devops_agent_package_url**
+
+  URL for the agent package (see [here](https://github.com/microsoft/azure-pipelines-agent/releases) for a list of available versions).
+  The value is pre-generated but can be controlled by setting `az_devops_agent_package_url` in your Ansible (inventory) file as follows:
+  - For pipeline based package with modern Node support for Azure DevOps SaaS:
+  ```yaml
+  az_devops_agent_package_url: "https://vstsagentpackage.azureedge.net/agent/{{ az_devops_agent_version }}/pipelines-agent-{{ ansible_system | lower | replace('darwin', 'osx') }}-{{ ansible_architecture | replace('x86_64', 'x64') | replace('aarch64', 'arm64') }}-{{ az_devops_agent_version }}.tar.gz"
+  ```
+  
+  - For pipeline based package without modern Node support for VSTS / Azure DevOps Server: you can leave as it is but it won't support arm based infra, otherwise use as follows:
+  ```yaml
+  az_devops_agent_package_url: "https://vstsagentpackage.azureedge.net/agent/{{ az_devops_agent_version }}/vsts-agent-{{ ansible_system | lower | replace('darwin', 'osx') }}-{{ ansible_architecture | replace('x86_64', 'x64') | replace('aarch64', 'arm64') }}-{{ az_devops_agent_version }}.tar.gz"
+  ```
+  It can be added as a default variable that is used across all environments, I will leave for someone else to add it, as it is an easy implementation and not a priority.
 
 - **az_devops_agent_user**
 

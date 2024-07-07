@@ -17,6 +17,8 @@ galaxy_info:
     - name: EL
       versions:
         - 7
+        - 8
+        - 9
     - name: Debian
       versions:
         - stretch
@@ -28,6 +30,13 @@ galaxy_info:
     - name: MacOSX
       versions:
         - 10.15
+        - 13.6.0
+        - 13.6.6
+        - 14.3
+        - 14.3.1
+        - 14.4
+        - 14.4.1
+        - 14.5
 
   galaxy_tags:
     - azure
