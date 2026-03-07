@@ -13,8 +13,8 @@ az_devops_project_name: null
 az_devops_agent_package_url: "{{ az_devops_default_agent_package_url }}"
 az_devops_environment_name: null
 az_devops_deployment_group_name: null
-az_devops_deployment_group_tags: null
-az_devops_proxy_url: null
-az_devops_proxy_username: null
-az_devops_proxy_password: null
+az_devops_deployment_group_tags: ''
+az_devops_proxy_url: ''
+az_devops_proxy_username: ''
+az_devops_proxy_password: ''
 az_devops_agent_create_local_user: true
