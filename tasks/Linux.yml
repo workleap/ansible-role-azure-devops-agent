@@ -97,7 +97,7 @@
 - name: Add deployment group tags
   when:
     - az_devops_deployment_group_tags is defined
-    - az_devops_deployment_group_tags|string
+    - az_devops_deployment_group_tags|length > 0
   block:
     - name: Set fact temporary variable - deployment_agent_cmd_args_tmp
       ansible.builtin.set_fact:
@@ -116,9 +116,9 @@
 - name: Set proxy
   when:
     - az_devops_proxy_url is defined
-    - az_devops_proxy_url|string
-    - az_devops_proxy_username|string
-    - az_devops_proxy_password|string
+    - az_devops_proxy_url|length > 0
+    - az_devops_proxy_username|length > 0
+    - az_devops_proxy_password|length > 0
   block:
     - name: Set fact temporary variable - agent_cmd_args_tmp
       ansible.builtin.set_fact:
